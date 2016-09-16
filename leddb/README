@@ -1,0 +1,36 @@
+INITIALIZING A POSTGRESQL DB and the leddb
+
+1 - Install postgres and start server by default in /var/lib/pgsql. 
+    For this create symbolic link from  /var/lib/pgsql to a disk location (/data3/users/lofareor/pgsql for example)
+    
+2 - Use the proper postgres.conf with modifications tunned for the server including:
+        * listen_addresses = '*'
+		* constraint_exclusion = on; (necessary for partitioning)
+		* autovacuum to on
+		* shared_buffers, effective_cache_size, work_mem 
+	Here there is a copy of current used postgres.cong (valid for postgres 8.3)
+	
+3 - With the user postgres we do createdb leddb
+
+4 - To create the role lofardata (which will be the owner of the leddb and can modify it)
+    and the role leddbweb (read-only user) we must do;
+    
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+REVOKE USAGE ON SCHEMA public FROM PUBLIC;
+
+create role lofardata LOGIN;
+create role leddbweb NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT LOGIN;
+
+GRANT CREATE ON SCHEMA public TO lofardata;
+GRANT USAGE ON SCHEMA public TO lofardata;
+ALTER DATABASE leddb OWNER TO lofardata;
+GRANT ALL PRIVILEGES ON DATABASE leddb to lofardata;
+
+GRANT USAGE ON SCHEMA public TO leddbweb;
+
+psql -U postgres -qAt -c "select 'grant select on ' || tablename || ' to \"leddbweb\";' from pg_tables where schemaname = 'public'" leddb | psql -U postgres leddb
+
+MIGRATING THE LEDDB TO NEW WERVER
+
+1 - createdb leddb an create the required users
+2 - pg_dump -C -h localhost -U localuser dbname | psql -h remotehost -U remoteuser dbname

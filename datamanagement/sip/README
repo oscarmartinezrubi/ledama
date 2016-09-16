@@ -1,0 +1,4 @@
+sipapi.py is generated with generateDS.py (http://www.rexx.com/~dkuhlman/generateDS.html)
+The command to generate it is:
+python generateDS.py -o sipapi.py --silence LTA-SIP.xsd
+# we need to use --silence to avoid printing the sips to stdout

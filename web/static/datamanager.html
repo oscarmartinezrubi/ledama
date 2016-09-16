@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+        <title>Data Manager</title>
+        <link rel="icon" type="image/png" href="css/logo.png" />
+        <link type="text/css" href="css/start/jquery-ui-1.8.17.custom.css" rel="stylesheet" />    
+        <link type="text/css" href="css/clustermonitor.css" rel="stylesheet" />    
+        <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+        <script type="text/javascript" src="js/jquery-ui-1.8.17.custom.min.js"></script>
+        <script type="text/javascript" src="js/webleddb.moduleui.js"></script>
+        <script type="text/javascript" src="js/webleddb.moduleblock.js"></script>
+        <style>
+
+	       pre {
+	           overflow-x: auto; /* Use horizontal scroller if needed; for Firefox 2, not needed in Firefox 3 */
+	           white-space: pre-wrap; /* css-3 */
+	           white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
+	           white-space: -pre-wrap; /* Opera 4-6 */
+	           white-space: -o-pre-wrap; /* Opera 7 */
+	           /* width: 99%; */
+	           word-wrap: break-word; /* Internet Explorer 5.5+ */
+	           }
+            .ui-autocomplete {
+                max-height: 200px;
+                overflow-y: auto;
+                /* prevent horizontal scrollbar */
+                overflow-x: hidden;
+                /* add padding to account for vertical scrollbar */
+                padding-right: 20px;
+            }
+            /* IE 6 doesn't support max-height
+             * we use height instead, but this forces the menu to always be this tall
+             */
+            * html .ui-autocomplete {
+                height: 200px;
+            }
+        </style>
+        <script type="text/javascript">
+            //variable to load the input params if they were saved. 
+            //Used for launching datamanager with selected values.
+            var LAUNCH_PARAMS = null; 
+            function StartDataManager(){
+                $("#container").css("width", 800);
+                $("#menu").css({
+                    margin:"0px",
+                    padding:"5px",
+                    //width: 200,
+                    float: 'left'
+                }).addClass("ui-widget-content");
+                
+                var pos = $("#menu").position();
+                $("#all_options").css({
+                    float: 'left'
+                }).addClass("ui-widget-content").
+                hide();
+                
+                $("#script_container").script();
+                //set the module ui widget size.
+                $("#moduleui").css({
+                    //width: 500,
+                    //height: 300,
+                    float: 'left',
+                }).addClass("ui-widget-content");
+                //set the spinner position in the middle of the module ui block.
+                $("#spinnerimg").css({
+                    position: 'relative',
+                    left: $("#moduleui").width()/2-$("#spinnerimg").width()/2,
+                    top: $("#moduleui").height()/2-$("#spinnerimg").height()/2,
+                }); 
+                $("#menu_all").button({
+                }).click(function(){
+                    $("#all_options").toggle("fade");
+                });
+                $("#menu_item").css({width:160, border:"1px solid black", "font-weight":"bold"});
+                $("#menu_list").button({
+                    icons: {
+                        primary: "ui-icon-carat-1-s"
+                    },
+                    text: false
+                }).click(function(){
+                    $("#menu_item").autocomplete("search","");
+                });
+                //Get info of what modules are available for the current user.
+                $.getJSON("initmoduleui", function(data){
+                    var option_list = [];
+                    for( module in data.MODULES ){
+                        option_list = option_list.concat(data.MODULES[module]);
+                        var block = $("<div></div>").blockui({"blockinfo":{
+                            'name': module,
+                            'modules': data.MODULES[module]
+                        }
+                        });
+                        $("#all_options").append(block);
+                    }
+                    //add the available modules to the auto complete input box.
+                    $("#menu_item").autocomplete({
+                        source:option_list,
+                        minLength:0,
+                        select: function(event, ui){
+                            getModuleUI(ui.item.value);
+                        }
+                    });
+
+                    //if there was any localStorage info for setting up the ui let's use it.
+                    if(typeof(Storage)){
+                        var showmodule = localStorage.showmodule;
+                        if(showmodule){
+                            LAUNCH_PARAMS = JSON.parse( showmodule );
+                            if(LAUNCH_PARAMS){
+                                getModuleUI( LAUNCH_PARAMS.name );
+                                localStorage.showmodule = null;
+                            }
+                        }
+                    }else{
+                        alert("localstorage not supported!");
+                    }
+                });
+            }
+ 
+       </script>
+        <style type="text/css">
+            /*demo page css*/
+            body{ font: 62.5% "Trebuchet MS", sans-serif; margin: 50px;}
+        </style>    
+    </head>
+    <body onLoad="StartDataManager();">
+    <div id="script_container"></div>
+    <div id="container"> 
+    <div id="all_options"></div>
+    <div id="menu"> 
+        <input type="text" id="menu_item" value="What Operation?"> </input> 
+        <button id="menu_list">Button</button>
+        <input type="checkbox" id="menu_all"/><label for="menu_all">Show All</label>
+    </div>
+    <div id="moduleui">
+        <img src="css/spinner.gif" style="display:none;" id="spinnerimg"></img>
+    </div>
+    </div>
+    <div id="messagebox"></div>
+    </body>
+</html>
+

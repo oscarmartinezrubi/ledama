@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+################################################################################
+#    Created by Oscar Martinez                                                 #
+#    martinez@astro.rug.nl                                                     #
+################################################################################
+import optparse, os, sys
+from ledama import utils
+from ledama.LModuleLoader import LModuleLoader
+
+# The arguments of these program should be ExecuteLModule [LModule Name] [rest of arguments related to the LModule]
+if len(sys.argv) < 2:
+    # At least 1 argument must be given
+    print 'Error: You must specify one of the possible LEDAMA modules'
+    print '       Use -h to get help.'
+    sys.exit(1)
+
+lModuleLoader = LModuleLoader()
+
+# The second argument must be the LEDAMA module we want to execute
+moduleName = sys.argv[1]
+# We reset the second argumetn to '' in order it does not affect the optparse
+#sys.argv[1] = ''
+if moduleName == '-h':
+    print '  Use "./' + sys.argv[0].split('/')[-1] + ' [LEDAMA module to be executed] -h" to get help on the arguments of the LEDAMA module you want to execute.'
+    modNames = sorted(lModuleLoader.getLModulesNames())
+    modulesByType = {}
+    for modName in modNames:
+        moduleType = lModuleLoader.getType(modName)
+        if modulesByType.get(moduleType) == None:
+            modulesByType[moduleType] = []
+        modulesByType.get(moduleType).append(modName)
+    print '  The current available LEDAMA modules are: '
+    for moduleType in sorted(modulesByType):
+        print '    ' + moduleType + ': ' + ', '.join(sorted(modulesByType.get(moduleType)))
+    sys.exit(1)
+    
+if not lModuleLoader.isValid(moduleName):
+    print 'Error: You must specify one of the possible LEDAMA modules'
+    print '       Use "./' + sys.argv[0].split('/')[-1] + ' -h" to get help.'
+    sys.exit(1)    
+
+# Gte the module isntance
+mod = lModuleLoader.getInstance(moduleName)
+
+# We configure the options with the arguments configuration of the loaded module
+modOptions = mod.getOptions()
+
+argsName = modOptions.getNames()
+argsDescription = modOptions.getDescriptions()
+argsHelp = modOptions.getHelpMessages()
+argsLetter = modOptions.getLetters()
+argsMandatory = modOptions.getMandatories()
+argsDefault = modOptions.getDefaults()
+argsChoices = modOptions.getChoices()
+argsType = modOptions.getTypes()
+
+opt = optparse.OptionParser(usage = ('Usage: ' + sys.argv[0].split('/')[-1] + ' ' + moduleName + ' [options]\n' + 'Description: ' +  mod.getInformation()))
+for i in range(len(argsName)):
+    mandatory = ''
+    default = ''
+    if  str(argsDefault[i]) != '':
+        default = ' [default is ' + str(argsDefault[i]) + ']'
+    else:
+        if argsMandatory[i]:
+            mandatory = ' [mandatory]'
+        else:
+            mandatory = ' [optional]'
+    
+    if argsChoices != None and argsChoices[i] != None and (type(argsChoices[i]) == list or type(argsChoices[i]) == tuple): 
+        opt.add_option('-' + argsLetter[i],
+                       '--' + argsName[i],
+                       help=argsDescription[i] + argsHelp[i] + mandatory + '. Choices are ' + '|'.join(argsChoices[i]) + default,
+                       default=argsChoices[i][0],
+                       type='choice',
+                       choices=list(argsChoices[i]))
+    elif type(argsDefault[i]) == bool:
+        if argsDefault[i]:
+            act = 'store_false'
+        else:
+            act = 'store_true'
+        opt.add_option('-' + argsLetter[i],
+                   '--' + argsName[i], 
+                   help = argsDescription[i] + argsHelp[i] + mandatory + default,
+                   default=argsDefault[i],
+                   action=act)
+    else:
+        opt.add_option('-' + argsLetter[i],
+                   '--' + argsName[i], 
+                   help = argsDescription[i] +  argsHelp[i] + mandatory + default,
+                   default = str(argsDefault[i]))
+
+# Add the version
+opt.add_option('--version', 
+                   help = 'Get version information of the module using the SVN server',
+                   default = False,
+                   action = 'store_true')
+
+# We load the current given options
+options, arguments = opt.parse_args()
+
+if options.version:
+    os.system('svn log ' + lModuleLoader.getAbsPath(moduleName))
+    sys.exit(0)
+        
+# read and cast the arguments into the expected types
+arguments = []
+for i in range(len(argsName)):
+    arguments.append(argsType[i](getattr(options, argsName[i])))
+
+
+# We check the mandatory arguments
+for i in range(len(argsName)):
+    if argsMandatory[i] and getattr(options, argsName[i]) == '':
+        print 'Error: You must specify the mandatory arguments.'
+        print '       Use "./' + sys.argv[0].split('/')[-1] + ' ' + moduleName + ' -h" to get help.'
+        sys.exit(1)    
+initTime = None
+if mod.showTime():
+    initTime = utils.getCurrentTime()
+    print '# ' + utils.getCurrentTimeStamp() + ' Starting ' + moduleName + '...'
+
+# Run the main ethod (process) of the LMODULE
+mod.process(*tuple(arguments))
+
+if mod.showTime():
+    print '# ' + utils.getCurrentTimeStamp() + ' Finished! (' + str(utils.getCurrentTime() - initTime) + ' secs)'

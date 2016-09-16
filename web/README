@@ -1,0 +1,20 @@
+cherrypy has a bug (at least in 3.2.2) when running with SSL. The large POSTs crash.
+In order to solve this a workaround must be done in the file 
+
+cherrypy/wsgiserver/wsgiserver2.py
+
+The line 1052:     
+
+assert n <= left, "recv(%d) returned %d bytes" % (left, n)
+
+must be replaced by:
+
+#assert n <= left, "recv(%d) returned %d bytes" % (left, n)
+#workaround to fix SSL assertion error with large POST
+elif n > left:
+    # Could happen with SSL transport. Differ
+    # extra data read to the next call
+    buf.write(data[:left])
+    self._rbuf.write(data[left:])
+    del data
+    break 

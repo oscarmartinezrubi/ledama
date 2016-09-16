@@ -1,0 +1,15 @@
+We present the details of the LEDDB (LOFAR EoR Diagnostic Database) that will be used in the storage, management, processing and analysis of the LOFAR EoR project observations. 
+
+LOFAR (Low-Frequency Array) is an antenna array that observes at low radio frequencies. It consists of about 70 stations spread around Europe that combine their signals to form an interferometric aperture synthesis array.
+
+The LOFAR EoR (Epoch of Reionization) experiment is one of the key science projects of LOFAR. It aims to study the redshifted 21-cm line of neutral hydrogen from the Epoch of Reionization. There are many challenges to meet this goal including strong astrophysical foreground contamination, ionospheric distortions, complex instrumental response and different types of noise. The very faint signals require hundreds of hours of observation thereby accumulating petabytes of data. To diagnose and monitor the various instrumental and ionospheric parameters, as well as manage the data, we have developed the LEDDB. Its main tasks and uses are:
+
+- To store referencing information of the observations, mainly the locations of the data but also other indexing information.
+- To store diagnostic parameters of the observations extracted through calibration.
+- To facilitate efficient data management and pipeline processing.
+- To monitor the performance of the telescope as a function of date.
+- To visualize the diagnostic parameters. This includes tools for the generation of plots and animations to analyze the diagnostic data through all its multiple dimensions. For example we can observe the complex gain of all the stations as a function of time and frequency to visualize ionospheric distortion affecting large part of the array.
+
+From the petabytes of data generated from the hundred of observations we estimate 10 terabytes of diagnostic data will be stored in the LEDDB. In addition to the size challenge, the most important issue to be taking into account for the design of the database and its query engine is the number of rows of some of the tables, which, in fact, become the main bottleneck in the queries. 
+
+The LEDDB is implemented with PostgreSQL and accessed through a python interface provided by the psycopg2 module. The query engine is a python API which provides fast and flexible access to the database. We use a python based web server (cherrypy) to interface with the query engine. The client-side user interface in the web page is implemented with JQueryUI framework. Minimum access times are possible thanks to efficient table indexing, the minimization of the amount of join operations, the use of persistent connections eased by the session handling provided by the cherrypy framework and an extensive set of options in the query engine for the selection of the data.

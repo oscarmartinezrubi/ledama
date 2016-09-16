@@ -1,0 +1,12 @@
+#!/bin/bash
+echo "latex O23"
+latex O23
+
+echo "latex O23"
+latex O23
+
+echo "dvips -Ppdf O23.dvi"
+dvips -Ppdf O23.dvi
+
+echo "ps2pdf14 O23.ps"
+ps2pdf14 O23.ps
