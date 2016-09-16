@@ -1,8 +1,10 @@
 # ledama - LOFAR EoR DAta MAnagement
 
-ledama contains all the code required for the:
-- LOFAR EoR data management, processing and analysis. LEDAMA aims to provide tools (LModules) for the processing of a large number of measurement sets. These LModules need, as input, RefFiles. A RefFile is a file which contains the locations of measurement sets.
+ledama contains code for the distributed processing in a specific CPU/GPU cluster of the LOFAR observations performed by the LOFAR EoR group. ledama also contains the code to run a DB called LEDDB for handling the locations of the observations' data and to store diagnostic information of the observations obtained through their processing.
 
-- LEDDB handling (for more information regarding the database see the LEDDB document), i.e. how to fill and browse the database. This also includes the tools for the diagnostic data visualization and the LEDDB web user interface (UI). The LModules for the diagnostic data visualization need, as input, DiagFiles. A DiagFile is a file with the references to diagnostic data stored in the LEDDB.
+Read the various documents in the `doc` folder for more information about ledama:
 
-- Cluster monitoring. This is based on daemons running in each node of the LOFAR EoR cluster that are collecting network traffic, CPU, GPU (currently disabled), memory and disk usage information. There is a tool within the LEDDB web for the displaying of the collected data. There is also a LModule that can be used for that purpose.
+- [ledama.pdf](doc/ledama/ledama.pdf) contains a detailed description of the ledama package.
+- [leddb.pdf](doc/leddb/leddb.pdf) contains details on the design, implementation and usage of the LEDDB. 
+- [welcome.pdf](doc/welcome/welcome.pdf) give a brief introduction to data processing within the LOFAR EoR project and using the LOFAR EoR CPU/GPU cluster.
+- [handlingeordata.pdf](doc/handlingeordata/handlingeordata.pdf) describes the tasks related to the management and processing of the data related to the LOFAR EoR project.
